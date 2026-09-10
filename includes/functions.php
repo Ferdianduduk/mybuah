@@ -31,6 +31,41 @@ function currentUserName(): string
     return (string) ($_SESSION['nama'] ?? '');
 }
 
+function requireLogin(): void
+{
+    if (!isLoggedIn()) {
+        redirect('auth/login.php');
+    }
+}
+
+function shippingCost(int|float $subtotal): int
+{
+    return (float) $subtotal >= 75000 ? 0 : 10000;
+}
+
+function orderStatusLabel(string $status): string
+{
+    return match ($status) {
+        'menunggu_pembayaran', 'menunggu_verifikasi' => 'MENUNGGU',
+        'diproses' => 'DIPROSES',
+        'dikirim' => 'DIKIRIM',
+        'selesai' => 'SELESAI',
+        'dibatalkan' => 'DIBATALKAN',
+        default => 'MENUNGGU',
+    };
+}
+
+function orderStatusClass(string $status): string
+{
+    return match ($status) {
+        'diproses' => 'status-blue',
+        'dikirim' => 'status-blue',
+        'selesai' => 'status-green',
+        default => 'status-orange',
+        'dibatalkan' => 'status-orange',
+    };
+}
+
 function redirect(string $url): never
 {
     header('Location: ' . $url);
@@ -39,11 +74,10 @@ function redirect(string $url): never
 
 function productVisual(?string $image, string $name = ''): string
 {
-    if ($image !== null && trim($image) !== '') {
-        return '<img src="' . e($image) . '" alt="' . e($name) . '" loading="lazy">';
-    }
+    $filename = basename(trim((string) $image));
+    $source = $filename !== ''
+        ? '/mybuah/assets/images/produk/' . rawurlencode($filename)
+        : '/mybuah/assets/images/placeholder.png';
 
-    $emojis = ['🍊', '🍎', '🥭', '🍉', '🍇', '🍓', '🍍', '🥝'];
-    $index = abs(crc32($name)) % count($emojis);
-    return '<span class="product-emoji" aria-hidden="true">' . $emojis[$index] . '</span>';
+    return '<img src="' . e($source) . '" alt="' . e($name) . '" loading="lazy" onerror="this.onerror=null;this.src=\'/mybuah/assets/images/placeholder.png\'">';
 }

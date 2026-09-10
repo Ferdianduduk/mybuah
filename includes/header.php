@@ -28,6 +28,8 @@ $searchValue = $_GET['cari'] ?? '';
             <a class="saved-link" href="landing.php#popular">♡ <span>Saved</span></a>
             <a class="cart-link" href="cart.php">🛒 <span>Cart</span></a>
             <?php if (isLoggedIn()): ?>
+                <a class="saved-link" href="pesanan.php"><span>Pesanan Saya</span></a>
+                <a class="saved-link" href="akun.php"><span>Akun Saya</span></a>
                 <span class="greeting">Hai, <?= e(currentUserName()) ?></span>
                 <a class="button button-outline" href="auth/logout.php">Logout</a>
             <?php else: ?>

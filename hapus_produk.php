@@ -1,0 +1,2 @@
+<?php
+require_once __DIR__.'/config/database.php';require_once __DIR__.'/includes/functions.php';if(!isset($_SESSION['id_admin']))redirect('admin_login.php');$id=filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT);if($id){$s=$pdo->prepare('DELETE FROM produk WHERE id_produk=:id');$s->execute(['id'=>$id]);}redirect('dashboard.php');
