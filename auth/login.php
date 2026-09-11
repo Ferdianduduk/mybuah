@@ -45,6 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
             <div class="auth-divider"></div>
             <p class="auth-switch">Belum punya akun? <a href="/mybuah/register.php">Daftar dulu, yuk.</a></p>
+            <p style="margin-top:12px; font-size:0.8rem; color:#9ca3af; text-align:center;">
+                Login sebagai admin? <a href="/mybuah/admin_login.php" style="color:#9ca3af; text-decoration:underline;">Klik di sini</a>
+            </p>
         </div>
     </section>
     <aside class="auth-illustration-side" aria-label="Buah segar MyBuah">

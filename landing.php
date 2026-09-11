@@ -46,6 +46,21 @@ $stmtTerbaru = $pdo->query(
 );
 $produkTerbaru = $stmtTerbaru->fetchAll();
 
+$heroStatement = $pdo->query(
+    "SELECT * FROM banner
+     WHERE aktif = 1 AND tipe = 'hero'
+     ORDER BY posisi ASC"
+);
+$heroBanners = $heroStatement->fetchAll();
+
+$bannerStatement = $pdo->query(
+    "SELECT * FROM banner
+     WHERE aktif = 1 AND tipe = 'kotak'
+     ORDER BY posisi ASC
+     LIMIT 4"
+);
+$banners = $bannerStatement->fetchAll();
+
 $productImagePath = static function (?string $image): ?string {
     $filename = basename(trim((string) $image));
     return $filename !== '' ? $filename : null;
@@ -54,7 +69,8 @@ $productImagePath = static function (?string $image): ?string {
 $pageTitle = 'MyBuah | Buah segar dari kebun lokal';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="container hero">
+<section class="container hero<?= count($heroBanners) > 1 ? ' hero-carousel' : '' ?>">
+    <?php if ($heroBanners === []): ?>
     <article class="hero-main">
         <div class="hero-main-copy">
             <span class="hero-badge">Diskon 20%</span>
@@ -68,27 +84,57 @@ require __DIR__ . '/includes/header.php';
             <div class="hero-produce" aria-hidden="true"><span>🥬</span><span>🍊</span><span>🥕</span></div>
         </div>
     </article>
-    <div class="hero-promos">
-        <article class="hero-promo hero-promo-light">
-            <div>
-                <span class="promo-badge">Diskon 20%</span>
-                <h2>Jeruk Segar</h2>
-                <p>Mulai dari Rp15.000</p>
-                <a class="promo-link" href="landing.php?kategori=1">Belanja Sekarang <span aria-hidden="true">→</span></a>
-            </div>
-            <img src="/mybuah/assets/images/hero/jeruk-segar.jpg" alt="Jeruk segar" class="hero-promo-img" onerror="this.hidden=true">
-            <span class="promo-fallback" aria-hidden="true">🍊</span>
-        </article>
-        <article class="hero-promo hero-promo-dark">
-            <div>
-                <span class="promo-badge">Best Deal</span>
-                <h2>Kelapa Sehat</h2>
-                <a class="promo-link" href="landing.php?kategori=2">Belanja Sekarang <span aria-hidden="true">→</span></a>
-            </div>
-            <img src="/mybuah/assets/images/hero/kelapa-sehat.jpg" alt="Kelapa sehat" class="hero-promo-img" onerror="this.hidden=true">
-            <span class="promo-fallback" aria-hidden="true">🥥</span>
-        </article>
-    </div>
+    <?php else: ?>
+        <?php foreach ($heroBanners as $heroIndex => $hero): ?>
+            <?php $heroImage = basename(trim((string) ($hero['gambar'] ?? ''))); ?>
+            <?php $heroFileExists = $heroImage !== '' && is_file(__DIR__ . '/assets/images/banner/' . $heroImage); ?>
+            <article class="hero-main hero-slide <?= $heroIndex === 0 ? 'is-active' : '' ?><?= $heroFileExists ? '' : ' hero-slide-no-image' ?>" style="<?= $heroFileExists ? "background-image: linear-gradient(90deg, rgba(15,64,35,.72) 0%, rgba(15,64,35,.35) 52%, rgba(15,64,35,.08) 100%), url('/mybuah/assets/images/banner/" . e(rawurlencode($heroImage)) . "');" : '' ?>">
+                <div class="hero-main-copy">
+                    <span class="hero-badge"><?= e($hero['subjudul'] ?: 'Promo Spesial') ?></span>
+                    <p class="eyebrow">Dari kebun ke pintu rumah</p>
+                    <h1><?= e($hero['judul']) ?></h1>
+                    <p class="hero-copy">Buah pilihan segar langsung untukmu.</p>
+                    <a class="button button-primary" href="<?= e($hero['link_tujuan'] ?: '#popular') ?>">Belanja Sekarang <span aria-hidden="true">→</span></a>
+                </div>
+                <?php if (!$heroFileExists): ?><div class="hero-fallback-visual" aria-label="Ilustrasi buah segar"><span>🍊</span><span>🍉</span><span>🍍</span></div><?php endif; ?>
+            </article>
+        <?php endforeach; ?>
+        <?php if (count($heroBanners) > 1): ?><div class="hero-dots" role="tablist" aria-label="Pilihan banner utama"><?php foreach ($heroBanners as $heroIndex => $hero): ?><button type="button" class="hero-dot <?= $heroIndex === 0 ? 'is-active' : '' ?>" data-hero-index="<?= $heroIndex ?>" aria-label="Tampilkan banner <?= $heroIndex + 1 ?>"></button><?php endforeach; ?></div><?php endif; ?>
+    <?php endif; ?>
+</section>
+
+<section class="container section promo-section">
+    <div class="section-heading"><h2>Promo Spesial</h2></div>
+    <?php if ($banners === []): ?>
+        <div class="empty-state">Belum ada promo spesial saat ini.</div>
+    <?php else: ?>
+        <div class="promo-grid">
+            <?php foreach (array_chunk($banners, 2) as $rowIndex => $bannerRow): ?>
+                <div class="<?= $rowIndex % 2 === 0 ? 'baris-1' : 'baris-2' ?>">
+                    <?php foreach ($bannerRow as $columnIndex => $banner): ?>
+                        <?php
+                        $bannerNumber = ($rowIndex * 2) + $columnIndex;
+                        $bannerImage = basename(trim((string) ($banner['gambar'] ?? '')));
+                        $bannerColor = ['promo-card-pink', 'promo-card-yellow', 'promo-card-green', 'promo-card-blue'][$bannerNumber % 4];
+                        ?>
+                        <a class="promo-card <?= $bannerColor ?>" href="<?= e($banner['link_tujuan'] ?: '#') ?>">
+                            <div>
+                                <span class="promo-label"><?= e($banner['kategori'] ?: 'Buah Segar') ?></span>
+                                <h3 class="promo-title"><?= e($banner['judul']) ?></h3>
+                                <span class="promo-btn">Lihat Produk →</span>
+                            </div>
+                            <?php if ($bannerImage !== ''): ?>
+                                <img src="/mybuah/assets/images/produk/<?= e(rawurlencode($bannerImage)) ?>" alt="<?= e($banner['judul']) ?>" onerror="this.hidden=true; this.nextElementSibling.hidden=false">
+                                <span class="promo-placeholder" aria-hidden="true" hidden>🍊</span>
+                            <?php else: ?>
+                                <span class="promo-placeholder" aria-hidden="true">🍊</span>
+                            <?php endif; ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </section>
 
 <section class="features-bar" aria-label="Keunggulan MyBuah">
@@ -187,6 +233,35 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 </section>
 <script>
+const heroSlides = document.querySelectorAll('.hero-slide');
+const heroDots = document.querySelectorAll('.hero-dot');
+let heroIndex = 0;
+let heroTimer;
+
+function tampilkanHero(index) {
+    if (heroSlides.length < 2) {
+        return;
+    }
+    heroIndex = (index + heroSlides.length) % heroSlides.length;
+    heroSlides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === heroIndex));
+    heroDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === heroIndex));
+}
+
+function mulaiHeroCarousel() {
+    if (heroSlides.length > 1) {
+        heroTimer = setInterval(() => tampilkanHero(heroIndex + 1), 5000);
+    }
+}
+
+heroDots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+        tampilkanHero(Number(dot.dataset.heroIndex));
+        clearInterval(heroTimer);
+        mulaiHeroCarousel();
+    });
+});
+mulaiHeroCarousel();
+
 function scrollProduk(arah, idContainer) {
     const container = document.getElementById(idContainer);
     const jarak = 240;

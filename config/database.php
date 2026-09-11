@@ -39,6 +39,19 @@ try {
     $addColumn('pesanan', 'items_json', 'text NULL');
     $addColumn('pesanan', 'created_at', 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP');
     $addColumn('pembayaran', 'created_at', 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP');
+    $pdo->exec("CREATE TABLE IF NOT EXISTS banner (
+        id_banner INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        judul VARCHAR(150) NOT NULL,
+        kategori VARCHAR(80) NULL,
+        gambar VARCHAR(255) NULL,
+        link_tujuan VARCHAR(255) NULL,
+        aktif TINYINT(1) NOT NULL DEFAULT 1,
+        posisi INT NOT NULL DEFAULT 0,
+        tipe ENUM('hero','kotak') NOT NULL DEFAULT 'kotak',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $addColumn('banner', 'tipe', "enum('hero','kotak') NOT NULL DEFAULT 'kotak'");
+    $addColumn('banner', 'subjudul', 'varchar(150) NULL AFTER judul');
 } catch (PDOException $exception) {
     http_response_code(500);
     exit('Koneksi database gagal. Pastikan MySQL dan konfigurasi database sudah aktif.');
