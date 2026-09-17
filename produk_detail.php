@@ -11,5 +11,79 @@ $pageTitle = $product['nama'] . ' | MyBuah';
 require __DIR__ . '/includes/header.php';
 ?>
 <?php $productImage = trim((string) $product['gambar']); ?>
-<section class="container section" style="padding-top:50px"><a href="landing.php" style="color:var(--green-dark);font-weight:700">← Kembali ke produk</a><div class="promo-grid" style="margin-top:24px"><div class="product-image" style="min-height:400px"><img src="<?= $productImage !== '' ? '/mybuah/assets/images/produk/' . e(rawurlencode(basename($productImage))) : '/mybuah/assets/images/placeholder.png' ?>" alt="<?= e($product['nama']) ?>" onerror="this.onerror=null;this.src='/mybuah/assets/images/placeholder.png'"></div><div><span class="product-category"><?= e($product['nama_kategori']) ?></span><h1><?= e($product['nama']) ?></h1><?= renderRatingStars() ?><p style="color:var(--muted);line-height:1.7"><?= nl2br(e($product['detail'])) ?></p><p class="price" style="font-size:25px"><?= formatRupiah($product['harga']) ?> / 1kg</p><p style="color:var(--muted)">Stok tersedia: <?= (int) $product['stok'] ?></p><form action="cart.php" method="post"><input type="hidden" name="id_produk" value="<?= (int) $product['id_produk'] ?>"><label class="form-field" style="max-width:120px">Jumlah<input type="number" name="jumlah" value="1" min="1" max="<?= max(1, (int) $product['stok']) ?>"></label><button class="button button-primary" type="submit">Tambah ke keranjang</button></form></div></div></section>
+<?php
+$productPath = $productImage !== ''
+	? '/mybuah/assets/images/produk/' . rawurlencode(basename($productImage))
+	: '/mybuah/assets/images/placeholder.png';
+$hasStock = (int) $product['stok'] > 0;
+?>
+<section class="container product-detail-page">
+	<a class="detail-back" href="landing.php">← Kembali ke produk</a>
+	<div class="detail-grid">
+		<div class="detail-image-box">
+			<button type="button" class="detail-image-arrow detail-image-arrow-prev" aria-label="Gambar sebelumnya">←</button>
+			<img src="<?= e($productPath) ?>" alt="<?= e($product['nama']) ?>" onerror="this.onerror=null;this.src='/mybuah/assets/images/placeholder.png'">
+			<button type="button" class="detail-image-arrow detail-image-arrow-next" aria-label="Gambar berikutnya">→</button>
+		</div>
+
+		<div class="detail-info">
+			<span class="detail-category"><?= e($product['nama_kategori']) ?></span>
+			<div class="detail-title-row">
+				<h1><?= e($product['nama']) ?></h1>
+				<span class="stock-badge <?= $hasStock ? 'in-stock' : 'out-stock' ?>">
+					<?= $hasStock ? 'In Stock' : 'Stok Habis' ?>
+				</span>
+			</div>
+
+			<div class="detail-rating">
+				<?= renderRatingStars() ?>
+				<span class="rating-count">4.0 (ulasan belum tersedia)</span>
+			</div>
+
+			<div class="detail-price"><?= formatRupiah($product['harga']) ?></div>
+			<p class="detail-description"><?= nl2br(e($product['detail'])) ?></p>
+
+			<div class="detail-actions">
+				<div class="qty-stepper" aria-label="Jumlah produk">
+					<button type="button" class="qty-button" onclick="ubahJumlahDetail(-1)" <?= !$hasStock ? 'disabled' : '' ?>>−</button>
+					<span class="qty-value" id="qtyDetail">1</span>
+					<button type="button" class="qty-button" onclick="ubahJumlahDetail(1)" <?= !$hasStock ? 'disabled' : '' ?>>+</button>
+				</div>
+
+				<form action="cart.php" method="post" class="detail-cart-form">
+					<input type="hidden" name="id_produk" value="<?= (int) $product['id_produk'] ?>">
+					<input type="hidden" name="jumlah" id="jumlahHidden" value="1">
+					<button type="submit" class="detail-button detail-button-cart" <?= !$hasStock ? 'disabled' : '' ?>>Add To Cart</button>
+				</form>
+
+				<button type="button" class="detail-button detail-button-buy" onclick="showBuyNowFallback(event)">Buy Now</button>
+				<button type="button" class="detail-wishlist" onclick="toggleSaved(this)" aria-label="Simpan produk">♡</button>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+function ubahJumlahDetail(delta) {
+	const valueElement = document.getElementById('qtyDetail');
+	const hiddenInput = document.getElementById('jumlahHidden');
+	const maximum = <?= max(1, (int) $product['stok']) ?>;
+	let quantity = parseInt(valueElement.textContent, 10) + delta;
+	quantity = Math.min(Math.max(quantity, 1), maximum);
+	valueElement.textContent = quantity;
+	hiddenInput.value = quantity;
+}
+
+function showBuyNowFallback(event) {
+	event.preventDefault();
+	alert('Fitur Buy Now belum tersedia. Silakan gunakan Add To Cart.');
+}
+
+function toggleSaved(button) {
+	button.classList.toggle('is-saved');
+	alert(button.classList.contains('is-saved')
+		? 'Fitur wishlist belum tersedia. Tanda disimpan hanya sementara di halaman ini.'
+		: 'Tanda simpan dibatalkan.');
+}
+</script>
 <?php require __DIR__ . '/includes/footer.php'; ?>
