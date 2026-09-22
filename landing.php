@@ -2,7 +2,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
-$search = trim((string) ($_GET['cari'] ?? ''));
+$kataKunci = trim((string) ($_GET['cari'] ?? ''));
 $categoryId = filter_input(INPUT_GET, 'kategori', FILTER_VALIDATE_INT) ?: null;
 
 $categoryStatement = $pdo->query(
@@ -21,9 +21,10 @@ $productSql = 'SELECT p.id_produk, p.nama, p.detail, p.stok, p.gambar, p.harga, 
 $params = [];
 $conditions = [];
 
-if ($search !== '') {
-    $conditions[] = '(p.nama LIKE :search OR p.detail LIKE :search)';
-    $params['search'] = '%' . $search . '%';
+if ($kataKunci !== '') {
+    $conditions[] = '(p.nama LIKE :search_name OR p.detail LIKE :search_detail)';
+    $params['search_name'] = '%' . $kataKunci . '%';
+    $params['search_detail'] = '%' . $kataKunci . '%';
 }
 if ($categoryId !== null) {
     $conditions[] = 'p.id_kategori = :category_id';
@@ -164,11 +165,14 @@ require __DIR__ . '/includes/header.php';
 
 <section class="container section" id="popular">
     <div class="section-heading">
-        <h2><?= $search !== '' ? 'Hasil pencarian' : 'Produk Terpopuler' ?></h2>
-        <?php if ($search !== ''): ?><a class="button button-outline" href="landing.php">Reset pencarian</a><?php endif; ?>
+        <h2><?= $kataKunci !== '' ? 'Hasil pencarian untuk &quot;' . e($kataKunci) . '&quot;' : 'Produk Terpopuler' ?></h2>
+        <?php if ($kataKunci !== ''): ?><a class="button button-outline" href="landing.php">Lihat semua produk</a><?php endif; ?>
     </div>
     <?php if ($products === []): ?>
-        <div class="empty-state">Belum ada produk yang cocok dengan pencarianmu.</div>
+        <div class="empty-state">
+            Produk tidak ditemukan untuk &quot;<?= e($kataKunci) ?>&quot;.
+            <a class="button button-outline" href="landing.php">Lihat semua produk</a>
+        </div>
     <?php else: ?>
         <div class="carousel-wrapper">
             <button class="carousel-btn carousel-btn-left" type="button" onclick="scrollProduk(-1, 'produkScroll')" aria-label="Produk sebelumnya">‹</button>
